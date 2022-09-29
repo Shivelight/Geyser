@@ -227,6 +227,7 @@ public class LoginEncryptionUtils {
 
         GeyserConfiguration config = session.getGeyser().getConfig();
         boolean isPasswordAuthEnabled = config.getRemote().isPasswordAuthentication();
+        String validUsername = session.getClientData().getUsername().replace(' ', '_');
 
         session.sendForm(
                 SimpleForm.builder()
@@ -235,6 +236,8 @@ public class LoginEncryptionUtils {
                         .content("geyser.auth.login.form.notice.desc")
                         .optionalButton("geyser.auth.login.form.notice.btn_login.mojang", isPasswordAuthEnabled)
                         .button("geyser.auth.login.form.notice.btn_login.microsoft")
+                        .button("Log in with an Offline account")
+                        .button("Log in as " + validUsername)
                         .button("geyser.auth.login.form.notice.btn_disconnect")
                         .closedOrInvalidResultHandler(() -> buildAndShowLoginWindow(session))
                         .validResultHandler((response) -> {
@@ -246,6 +249,16 @@ public class LoginEncryptionUtils {
 
                             if (response.clickedButtonId() == 1) {
                                 session.authenticateWithMicrosoftCode();
+                                return;
+                            }
+
+                            if (response.clickedButtonId() == 2) {
+                                buildAndShowOfflineLoginWindow(session);
+                                return;
+                            }
+
+                             if (response.clickedButtonId() == 3) {
+                                session.authenticate(validUsername);
                                 return;
                             }
 
@@ -298,6 +311,18 @@ public class LoginEncryptionUtils {
                 session.disconnect("%disconnect.quitting");
             }
         };
+    }
+
+    public static void buildAndShowOfflineLoginWindow(GeyserSession session) {
+         session.sendForm(
+                CustomForm.builder()
+                        .translator(GeyserLocale::getPlayerLocaleString, session.locale())
+                        .title("geyser.auth.login.form.details.title")
+                        .label("Enter the offline username you want to use below.")
+                        .input("Username", "Shivelight", "")
+                        .invalidResultHandler(() -> buildAndShowOfflineLoginWindow(session))
+                        .closedResultHandler(() -> buildAndShowLoginWindow(session))
+                        .validResultHandler((response) -> session.authenticate(response.next())));
     }
 
     public static void buildAndShowLoginDetailsWindow(GeyserSession session) {
