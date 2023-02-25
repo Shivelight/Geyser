@@ -1354,6 +1354,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return false;
     }
 
+    public void requestOffhandSwap() {
+        ServerboundPlayerActionPacket swapHandsPacket = new ServerboundPlayerActionPacket(PlayerAction.SWAP_HANDS, Vector3i.ZERO,
+                Direction.DOWN, 0);
+        sendDownstreamPacket(swapHandsPacket);
+    }
+
     /**
      * Will be overwritten for GeyserConnect.
      */
@@ -1404,10 +1410,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void setServerRenderDistance(int renderDistance) {
-        // +1 is for Fabric and Spigot
-        // Without the client misses loading some chunks per https://github.com/GeyserMC/Geyser/issues/3490
-        // Fog still appears essentially normally
-        renderDistance = renderDistance + 1;
         this.serverRenderDistance = renderDistance;
 
         ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
@@ -1419,11 +1421,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return this.upstream.getAddress();
     }
 
+    @Override
     public boolean sendForm(@NonNull Form form) {
         formCache.showForm(form);
         return true;
     }
 
+    @Override
     public boolean sendForm(@NonNull FormBuilder<?, ?, ?> formBuilder) {
         formCache.showForm(formBuilder.build());
         return true;
