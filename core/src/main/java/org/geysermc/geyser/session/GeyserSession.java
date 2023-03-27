@@ -640,7 +640,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Potion mixes are registered by default, as they are needed to be able to put ingredients into the brewing stand.
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
-        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.get());
+        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(this.upstream.getProtocolVersion()));
         upstream.sendPacket(craftingDataPacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
@@ -732,7 +732,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 return;
             }
 
-            connectDownstream();
+            try {
+                connectDownstream();
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
         });
     }
 
@@ -776,7 +780,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 return;
             }
 
-            connectDownstream();
+            try {
+                connectDownstream();
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
         });
     }
 
@@ -850,7 +858,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                         selectedProfile,
                         service.getAccessToken()
                 );
-                connectDownstream();
+                try {
+                    connectDownstream();
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                    return false;
+                }
 
                 // Save our refresh token for later use
                 geyser.saveRefreshToken(bedrockUsername(), service.getRefreshToken());
@@ -1012,7 +1025,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                     // Server is offline, probably
                     disconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.server_offline", locale());
                 } else {
-                    disconnectMessage = MessageTranslator.convertMessageLenient(event.getReason());
+                    disconnectMessage = MessageTranslator.convertMessage(event.getReason());
                 }
 
                 if (downstream instanceof LocalSession) {
@@ -1688,6 +1701,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         abilities.add(Ability.MINE);
         // Needed so you can drop items
         abilities.add(Ability.DOORS_AND_SWITCHES);
+        // Required for lecterns to work (likely started around 1.19.10; confirmed on 1.19.70)
+        abilities.add(Ability.OPEN_CONTAINERS);
         if (gameMode == GameMode.CREATIVE) {
             // Needed so the client doesn't attempt to take away items
             abilities.add(Ability.INSTABUILD);

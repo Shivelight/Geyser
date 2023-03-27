@@ -76,6 +76,7 @@ public class ItemRegistryPopulator {
         paletteVersions.put("1_19_20", new PaletteVersion(Bedrock_v544.V544_CODEC.getProtocolVersion(), Collections.emptyMap()));
         paletteVersions.put("1_19_50", new PaletteVersion(Bedrock_v560.V560_CODEC.getProtocolVersion(), Collections.emptyMap()));
         paletteVersions.put("1_19_60", new PaletteVersion(Bedrock_v567.V567_CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_19_70", new PaletteVersion(575, Collections.emptyMap()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
@@ -285,6 +286,7 @@ public class ItemRegistryPopulator {
             Set<String> javaOnlyItems = new ObjectOpenHashSet<>();
             Collections.addAll(javaOnlyItems, "minecraft:spectral_arrow", "minecraft:debug_stick",
                     "minecraft:knowledge_book", "minecraft:tipped_arrow", "minecraft:bundle");
+            javaOnlyItems.add("minecraft:decorated_pot"); // TODO 1.19.80 resolve probs?
             if (!customItemsAllowed) {
                 javaOnlyItems.add("minecraft:furnace_minecart");
             }
@@ -303,6 +305,11 @@ public class ItemRegistryPopulator {
                 } else {
                     // This items has a mapping specifically for this version of the game
                     mappingItem = entry.getValue();
+                }
+
+                // 1.19.70+
+                if (palette.getValue().protocolVersion() >= 575 && mappingItem.getBedrockIdentifier().equals("minecraft:wool")) {
+                    mappingItem.setBedrockIdentifier(javaIdentifier);
                 }
 
                 if (customItemsAllowed && javaIdentifier.equals("minecraft:furnace_minecart")) {
